@@ -2,6 +2,7 @@ package xyz.gokulnair.tickettracker.core.usecase.ticket.model;
 
 
 import org.springframework.stereotype.Service;
+import xyz.gokulnair.tickettracker.core.usecase.ticket.model.exceptions.ResourceNotFoundException;
 import xyz.gokulnair.tickettracker.infrastructure.gateways.ticket.model.TicketGateway;
 
 @Service
@@ -14,7 +15,7 @@ public class DeleteTicketInteractor implements DeleteTicketInputBoundary{
     }
 
     @Override
-    public String delete(Long id) {
+    public String delete(Long id) throws ResourceNotFoundException {
         String response=ticketGateway.deleteTicketById(id);
         return response;
     }

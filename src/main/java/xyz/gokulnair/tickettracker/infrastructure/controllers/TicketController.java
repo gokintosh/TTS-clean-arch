@@ -2,12 +2,14 @@ package xyz.gokulnair.tickettracker.infrastructure.controllers;
 
 
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.gokulnair.tickettracker.core.usecase.ticket.model.CreateTicketInputBoundary;
 import xyz.gokulnair.tickettracker.core.usecase.ticket.model.DeleteTicketInputBoundary;
 import xyz.gokulnair.tickettracker.core.usecase.ticket.model.FindVisibleTicketInputBoundary;
 import xyz.gokulnair.tickettracker.core.usecase.ticket.model.UpdateTicketPropertyInputBoundary;
+import xyz.gokulnair.tickettracker.core.usecase.ticket.model.exceptions.ResourceNotFoundException;
 import xyz.gokulnair.tickettracker.core.usecase.ticket.model.request.CreateTicketRequestModel;
 import xyz.gokulnair.tickettracker.core.usecase.ticket.model.response.TicketResponseModel;
 import xyz.gokulnair.tickettracker.infrastructure.tables.TicketTable;
@@ -34,38 +36,73 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<String> create(@RequestBody CreateTicketRequestModel createTicketRequestModel){
-        TicketTable result=createTicketInputBoundary.create(createTicketRequestModel);
 
-        return ResponseEntity.ok().body("your Ticket id is "+result.getId()+" please save it for future uses.");
+        try{
+            TicketTable result=createTicketInputBoundary.create(createTicketRequestModel);
+
+            return ResponseEntity.ok().body("your Ticket id is "+result.getId()+" please save it for future uses.");
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+
     }
 
 
     @GetMapping
     public ResponseEntity findAllTickets(){
-        List<TicketResponseModel>ticketResponseModels=findVisibleTicketInputBoundary.create();
 
-        return ResponseEntity.ok().body(ticketResponseModels);
+
+
+        List<TicketResponseModel>ticketResponseModels=findVisibleTicketInputBoundary.create();
+        if(!ticketResponseModels.isEmpty()){
+            return ResponseEntity.ok().body(ticketResponseModels);
+        }
+        else{
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
 
     @PutMapping("/updateseverity/{id}")
     public ResponseEntity updateSeverity(@PathVariable(value = "id")Long ticketId,@RequestBody String severity){
-        String updateResult=updateTicketPropertyInputBoundary.updateSeverity(ticketId,severity);
+        String updateResult= null;
+        try {
+            updateResult = updateTicketPropertyInputBoundary.updateSeverity(ticketId,severity);
+            return ResponseEntity.ok().body(updateResult);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-        return ResponseEntity.ok().body(updateResult);
+
     }
     @PutMapping("/updatestatus/{id}")
     public ResponseEntity updateStatus(@PathVariable(value = "id")Long ticketId,@RequestBody String status){
-        String updateResult=updateTicketPropertyInputBoundary.updateStatus(ticketId,status);
+        String updateResult= null;
+        try {
+            updateResult = updateTicketPropertyInputBoundary.updateStatus(ticketId,status);
+            return ResponseEntity.ok().body(updateResult);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-        return ResponseEntity.ok().body(updateResult);
+
     }
 
     @DeleteMapping("/deleteticket/{id}")
-    public ResponseEntity deleteticket(@PathVariable(value = "id")Long ticketId){
-        String deleteResult= deleteTicketInputBoundary.delete(ticketId);
+    public ResponseEntity deleteticket(@PathVariable(value = "id")Long ticketId)  {
+        String deleteResult;
+        try {
+            deleteResult = deleteTicketInputBoundary.delete(ticketId);
+            return ResponseEntity.ok().body(deleteResult);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-        return ResponseEntity.ok().body(deleteResult);
+
     }
 
 }
