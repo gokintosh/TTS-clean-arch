@@ -2,6 +2,7 @@ package xyz.gokulnair.tickettracker.infrastructure.gateways.ticket.model;
 import org.springframework.stereotype.Service;
 import xyz.gokulnair.tickettracker.core.entities.Severity;
 import xyz.gokulnair.tickettracker.core.entities.Status;
+import xyz.gokulnair.tickettracker.core.usecase.ticket.model.exceptions.ResourceNotFoundException;
 import xyz.gokulnair.tickettracker.infrastructure.gateways.ticket.model.request.CreateTicketGatewayRequestModel;
 import xyz.gokulnair.tickettracker.infrastructure.gateways.ticket.model.response.TicketGatewayResponseModel;
 import xyz.gokulnair.tickettracker.infrastructure.repositories.TicketJPARepository;
@@ -26,7 +27,7 @@ public class TicketJpa implements TicketGateway{
     @Override
     public TicketTable create(CreateTicketGatewayRequestModel createTicketGatewayRequestModel) {
 
-        TicketTable ticketTable=this.ticketJPArepository.save(new TicketTable(
+        TicketTable ticketTable=ticketJPArepository.save(new TicketTable(
                 null,
                 createTicketGatewayRequestModel.getTitle(),
                 createTicketGatewayRequestModel.getDescription(),
@@ -61,7 +62,7 @@ public class TicketJpa implements TicketGateway{
     }
 
     @Override
-    public String updateSeverityById(Long id, String severity) {
+    public String updateSeverityById(Long id, String severity) throws ResourceNotFoundException {
 
         TicketTable result=getTicketFromId(id);
 
@@ -86,7 +87,7 @@ public class TicketJpa implements TicketGateway{
     }
 
     @Override
-    public String updateStatusById(Long id, String status) {
+    public String updateStatusById(Long id, String status) throws ResourceNotFoundException {
         TicketTable result=getTicketFromId(id);
 
 
@@ -109,8 +110,8 @@ public class TicketJpa implements TicketGateway{
     }
 
     @Override
-    public String deleteTicketById(Long id) {
-        TicketTable result=ticketJPArepository.findById(id).orElse(null);
+    public String deleteTicketById(Long id) throws ResourceNotFoundException {
+        TicketTable result=ticketJPArepository.findById(id).orElseThrow(()->new ResourceNotFoundException("could not find the item with id"+id));
 
         result.setIsDeleted(true);
         result.setIsPublic(false);
@@ -125,8 +126,8 @@ public class TicketJpa implements TicketGateway{
 
 //    reduce boilerplate code
 
-    public TicketTable getTicketFromId(Long id){
-        return ticketJPArepository.findById(id).orElse(null);
+    public TicketTable getTicketFromId(Long id) throws ResourceNotFoundException {
+        return ticketJPArepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Could not find The item with id "+id));
 
     }
 
